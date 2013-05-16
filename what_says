@@ -1,0 +1,114 @@
+#!/usr/bin/env ruby
+
+module Chouette
+  class Hulotte
+    attr_reader :rest, :last_subtracted_value, :nb_subtract
+
+    def initialize value, first_value_to_subtract
+      @value = value
+      @first_value_to_subtract = first_value_to_subtract
+
+      calc_by_subtract
+    end
+
+    private
+      def calc_by_subtract
+        @rest = @value
+        @last_subtracted_value = @first_value_to_subtract
+        @nb_subtract = 0
+
+        while @rest > @last_subtracted_value
+          @rest -= @last_subtracted_value
+          @last_subtracted_value += 2
+          @nb_subtract += 1
+        end
+      end
+  end
+
+  class Effraie
+    def initialize entry
+      @entry = entry
+      @clean_entry = to_s_pair_length entry
+    end
+
+    def size
+      nb_iterations = @clean_entry.length / 2
+
+      value_to_subtract = -1
+      rest = 0
+      result = ""
+
+      for i in 0...nb_iterations
+        s = i * 2
+        e = s + 2
+        part = @clean_entry[s...e]
+        value = part.to_i + rest * 100
+        value_to_subtract = (value_to_subtract + 1) * 10 + 1
+
+        hulotte = Hulotte.new value, value_to_subtract
+
+        value_to_subtract = hulotte.last_subtracted_value
+        rest = hulotte.rest
+        result += hulotte.nb_subtract.to_s
+      end
+
+      result.to_i
+    end
+
+    private
+      def to_s_pair_length value
+        str = value.to_s
+        str = "0" + str unless str.length % 2 == 0
+        str
+      end
+  end
+
+  class Eperviere
+    def initialize
+      @entry = ARGV.join(" ")
+      @computed = 0
+      @entry.bytes do |i|
+        @computed += i
+      end
+      @harfang = Harfang.new
+    end
+
+    def say
+      effraie = Chouette::Effraie.new @computed
+      size = effraie.size
+
+      result = Array.new
+
+      begin
+        @entry.bytes do |b|
+          i = b % 50
+          result.push @harfang.get i, size
+        end
+        puts result.join ""
+      rescue
+        puts "Too bad. Try again!"
+      end
+    end
+  end
+
+  class Harfang
+    def initialize
+      @datas = IO.readlines "datas"
+    end
+
+    def get i, size
+      raise "wat?" if i > @datas.length
+      line = @datas[i]
+      raise "so close..." unless size == line.length
+      line
+    end
+  end
+end
+
+if ARGV.length == 0
+  puts "Don't you miss something?"
+  exit
+end
+
+eperviere = Chouette::Eperviere.new
+eperviere.say
